@@ -20,6 +20,8 @@ Route::get('/posts', [PostController::class, 'index']);
 
 Route::post('/posts', [PostController::class, 'store']);
 
+Route::delete('/post/{id}', [PostController::class, 'destroy']);
+
 Route::post('/posts/checkSlug', [PostController::class, 'createSlug']);
 
 Route::get('/post/{id}', [PostController::class, 'show']);

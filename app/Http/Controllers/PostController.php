@@ -63,18 +63,35 @@ class PostController extends Controller
             "id" => $post->id
         ], 200);
     }
+    public function destroy($id){
+        if(Post::where('id', $id)->exists()){
+            Post::destroy($id);
+            return response([
+                "message" => "Successfully deleted post"
+            ], 200);
+        }
+        return response([
+            "message" => "Can't find the related post"
+        ], 422);
+        
+    }
 
     public function createSlug(Request $request)
     {
-        $slug = Post::where("slug", $request->get('words'))->exists();
+        $words = $request->get('words');
+        $slug = Post::where("slug", $words)->exists();
 
         if (!$slug) {
             return response([
                 "valid" => true
             ]);
         }
+        while(Post::where('slug', $words)){
+            $words = uniqid($words);
+        }
         return response([
-            'valid' => false
+            'valid' => false,
+            "slug" => $words
         ]);
     }
 }
