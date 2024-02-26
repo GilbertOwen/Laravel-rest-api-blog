@@ -40,7 +40,7 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $vd = Validator::make($request->all(), [
-            "user_id" => "required",
+            // "user_id" => "required",
             "category_id" => "required",
             "title" => "required|min:5",
             "slug" => "required|unique:posts,slug",
@@ -56,6 +56,8 @@ class PostController extends Controller
 
         $data = $vd->validated();
 
+        $data['user_id'] = random_int(1, 3);
+
         $post = Post::create($data);
 
         return response([
@@ -63,8 +65,9 @@ class PostController extends Controller
             "id" => $post->id
         ], 200);
     }
-    public function destroy($id){
-        if(Post::where('id', $id)->exists()){
+    public function destroy($id)
+    {
+        if (Post::where('id', $id)->exists()) {
             Post::destroy($id);
             return response([
                 "message" => "Successfully deleted post"
@@ -73,25 +76,28 @@ class PostController extends Controller
         return response([
             "message" => "Can't find the related post"
         ], 422);
-        
     }
 
     public function createSlug(Request $request)
     {
         $words = $request->get('words');
-        $slug = Post::where("slug", $words)->exists();
+        $slug = $words; // Assume initially that the given words can be used as the slug.
 
-        if (!$slug) {
+        if (Post::where("slug", $slug)->exists()) {
+            // The given slug exists, so we need to generate a unique slug.
+            do {
+                $slug = uniqid(); // Generate a unique ID for the slug.
+            } while (Post::where('slug', $slug)->exists()); // Ensure the generated slug is unique.
+
             return response([
-                "valid" => true
+                'valid' => false, // Indicate the original slug was not valid (because it already exists).
+                "slug" => $slug // Return the newly generated unique slug.
+            ]);
+        } else {
+            // The given slug does not exist, so it's valid and no new slug needs to be generated.
+            return response([
+                "valid" => true // Indicate the original slug is valid (because it does not exist).
             ]);
         }
-        while(Post::where('slug', $words)){
-            $words = uniqid($words);
-        }
-        return response([
-            'valid' => false,
-            "slug" => $words
-        ]);
     }
 }
